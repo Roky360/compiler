@@ -1,0 +1,11 @@
+func main(int argc, string argv) -> int {
+    int x;
+    string s = "hello";
+
+    return 0;
+}
+
+// one ling comment
+/-
+Wow long comment
+-/

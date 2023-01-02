@@ -1,0 +1,39 @@
+import "infinity.in";
+define N 4
+
+/-
+Multi-line comment
+-/
+
+// if return type not specified, default is void
+func main(int argc, Array<string> argv) -> int {
+    int x = (50 + 7) / 3 - 1 / (8 - 3);
+    string s = "hello world";
+    bool b = true;
+    Array<int> arr = [1, 2, 3];
+    Array<int> arr = [1, 2, 3];
+
+    if (x > 4) {
+        x = 0;
+    } else if (x == 4) {
+        x = 1;
+    } else {
+        x = 10;
+    }
+
+    for (int i = 0; i < x; i++) {
+        // ...
+    }
+
+    while (i < x) {
+        // ...
+    }
+
+    // THINK HOW TO IMPLEMENT PRINT
+    print(x);
+    // THINK HOW TO IMPLEMENT INPUT
+    // like c or like python
+    input(max_num_of_characters);
+
+    return 0;
+}
