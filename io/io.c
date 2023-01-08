@@ -1,7 +1,7 @@
 #include "io.h"
-#include "../config/globals.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 // Chunk size for reading files
 #define CHUNK_SIZE 128
@@ -76,4 +76,24 @@ char *get_file_extension(char *filename) {
         if (p == filename) // if file name does not contain extension
             return "";
     return strdup(p + 1);
+}
+
+int alsprintf(char **buf, const char *format, ...) {
+    va_list args;
+    int printed_chars;
+    va_start(args, format);
+
+    // Get the size of the buffer needed to hold the formatted string
+    printed_chars = vsnprintf(NULL, 0, format, args);
+    if (printed_chars < 0) {
+        // An error occurred
+        va_end(args);
+        return printed_chars;
+    }
+    // Allocate the buffer
+    *buf = malloc(printed_chars + 1);
+    // Format the string
+    printed_chars = vsnprintf(*buf, printed_chars + 1, format, args);
+    va_end(args);
+    return printed_chars;
 }

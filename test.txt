@@ -1,11 +1,11 @@
 func main(int argc, string argv) -> int {
     int x;
-    string s = "hello";
+    string s = "hello\n";
 
     return 0;
 }
 
-// one ling comment
+// one line comment
 /-
 Wow long comment
 -/

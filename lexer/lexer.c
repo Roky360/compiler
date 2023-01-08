@@ -1,6 +1,7 @@
 #include "lexer.h"
 #include "../config/globals.h"
 #include "../logging/logging.h"
+#include "../io/io.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -94,15 +95,39 @@ Token *lexer_parse_int_token(Lexer *lexer) {
     return init_token(val, INT);
 }
 
+char *get_escape_character(Lexer *lexer) {
+    char next = lexer_peek(lexer, 1);
+    switch (next) {
+        case 'n':
+            return (char[]) {'\n', 0};
+        case 't':
+            return (char[]) {'\t', 0};
+        case 'r':
+            return (char[]) {'\r', 0};
+        case 'b':
+            return (char[]) {'\b', 0};
+        case '"':
+            return (char[]) {'"', 0};
+        default:
+            return (char[]) {lexer->c, next, 0};
+    }
+}
+
 Token *lexer_parse_string_token(Lexer *lexer) {
-    char *val = calloc(1, sizeof(char));
+    size_t val_len = 1;
+    char *val = calloc(val_len, sizeof(char));
     if (!val)
         log_error(LEXER, "Cant allocate memory for token value_expr.");
 
     lexer_forward(lexer);
     while (lexer->c != '"') {
-        val = realloc(val, (strlen(val) + 2) * sizeof(char));
-        strcat(val, (char[]) {lexer->c, 0});
+        val = realloc(val, ++val_len);
+        if (lexer->c == '\\') { // support escape characters
+            strcat(val, get_escape_character(lexer));
+            lexer_forward(lexer);
+        } else {
+            strcat(val, (char[]) {lexer->c, 0});
+        }
         lexer_forward(lexer);
     }
 
@@ -110,15 +135,13 @@ Token *lexer_parse_string_token(Lexer *lexer) {
 }
 
 void lexer_skip_one_line_comment(Lexer *lexer) {
-    while (lexer->c != '\n') {
-        if (lexer->c == 0)
-            break;
+    while (lexer->c != 0 && lexer->c != '\n') {
         lexer_forward(lexer);
     }
 }
 
 void lexer_skip_multi_line_comment(Lexer *lexer) {
-    int row = lexer->row, col = lexer->col, idx = lexer->idx;
+    unsigned int row = lexer->row, col = lexer->col, idx = lexer->idx;
     lexer_forward(lexer);
     lexer_forward(lexer);
     while (!(lexer->c == '-' && lexer_peek(lexer, 1) == '/')) {
@@ -146,7 +169,7 @@ Token *lexer_next_token(Lexer *lexer) {
     else if (isdigit(lexer->c))
         t = lexer_parse_int_token(lexer);
     else {
-        asprintf(&currC, "%c", lexer->c);
+        alsprintf(&currC, "%c", lexer->c);
 
         switch (lexer->c) {
             case '(':
@@ -237,7 +260,7 @@ Token *lexer_next_token(Lexer *lexer) {
                 t = init_token(currC, EOF_TOKEN);
                 break;
             default:
-                asprintf(&errorMsg, "Unknown token '%c'", lexer->c);
+                alsprintf(&errorMsg, "Unknown token '%c'", lexer->c);
                 throw_exception_with_trace(LEXER, lexer, errorMsg);
                 break;
         }

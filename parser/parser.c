@@ -2,6 +2,7 @@
 #include "../config/globals.h"
 #include "../lexer/lexer.h"
 #include "../logging/logging.h"
+#include "../io/io.h"
 #include <stdio.h>
 
 Parser *init_parser(Lexer *lexer) {
@@ -22,7 +23,7 @@ void parser_dispose(Parser *parser) {
 
 void parser_handle_unexpected_token(Parser *parser, char *expectations) {
     char *errMsg;
-    asprintf(&errMsg, "Unexpected token: '%s'. Expecting '%s'", parser->token->value, expectations);
+    alsprintf(&errMsg, "Unexpected token: '%s'. Expecting '%s'", parser->token->value, expectations);
     throw_exception_with_trace(PARSER, parser->lexer, errMsg);
 }
 
@@ -100,7 +101,7 @@ LiteralValue *get_default_literal_value(TokenType type) {
         case BOOL_KEYWORD:
             return init_literal_value(TYPE_BOOL, (Value) {.bool_value = 0});
         default:
-            asprintf(&errMsg, "Unsupported type '%s'", token_type_to_str(type));
+            alsprintf(&errMsg, "Unsupported type '%s'", token_type_to_str(type));
             log_error(PARSER, errMsg);
             return NULL;
     }
@@ -118,7 +119,6 @@ AstNode *parser_parse_compound(Parser *parser) {
 
     while (parser->token->type != EOF_TOKEN) {
         list_push(root->data.compound.children, parser_parse_statement(parser));
-        printf("parse 1\n");
     }
     return root;
 }
@@ -148,7 +148,7 @@ AstNode *parser_parse_statement(Parser *parser) {
         case RETURN_KEYWORD:
             return parser_parse_return_statement(parser);
         default:
-            asprintf(&errMsg, "Expected an expression, got %s", token_type_to_str(parser->token->type));
+            alsprintf(&errMsg, "Expected an expression, got %s", token_type_to_str(parser->token->type));
             throw_exception_with_trace(PARSER, parser->lexer, errMsg);
             return NULL;
     }
@@ -221,9 +221,9 @@ AstNode *parser_parse_function_definition(Parser *parser) {
     while (parser->token->type != R_PARENTHESES) {
         // get arg type
         argType = token_type_to_data_type(parser->token->type);
-        if (argType == -1) // invalid type
+        if ((int)argType == -1) // invalid type
         {
-            asprintf(errMsg, "Expected argument type, got %s token.", token_type_to_str(parser->token->type));
+            alsprintf(&errMsg, "Expected argument type, got %s token.", token_type_to_str(parser->token->type));
             throw_exception_with_trace(PARSER, parser->lexer, errMsg);
         }
         parser_forward(parser, parser->token->type);
@@ -244,8 +244,6 @@ AstNode *parser_parse_function_definition(Parser *parser) {
     node->data.function_definition.returnType = token_type_to_data_type(
             parser_forward_with_list(parser, data_types, data_types_len, "return type")
                     ->type);
-
-    printf("OK\n");
 
     parser_parse_block(parser, node->data.function_definition.body);
 

@@ -27,6 +27,8 @@ Token *lexer_parse_id_token(Lexer *lexer);
 
 Token *lexer_parse_int_token(Lexer *lexer);
 
+char *get_escape_character(Lexer *lexer);
+
 Token *lexer_parse_string_token(Lexer *lexer);
 
 void lexer_skip_one_line_comment(Lexer *lexer);
